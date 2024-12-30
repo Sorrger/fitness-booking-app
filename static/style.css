@@ -1,0 +1,105 @@
+/* Resetowanie domyślnych marginesów i paddingów */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Tło strony i czcionki */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    color: #333;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Kontener główny */
+.content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Banner */
+.banner {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 30px;
+    font-size: 2.5rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    flex: 0 0 20%;
+}
+
+/* Menu nawigacyjne */
+nav {
+    background-color: #2c3e50;
+    text-align: center;
+    padding: 10px 0;
+    flex: 0 0 15%;
+}
+
+nav a {
+    color: white;
+    text-decoration: none;
+    padding: 10px 20px;
+    margin: 0 15px;
+    display: inline-block;
+    transition: background-color 0.3s;
+}
+
+nav a:hover {
+    background-color: #1abc9c;
+}
+
+/* Treść główna */
+.main {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    flex: 1; /* Ta sekcja zajmie pozostałą przestrzeń */
+    margin: 20px 0;
+}
+
+.main p {
+    font-size: 1.2rem;
+    line-height: 1.6;
+}
+
+/* Stopka */
+.footer {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 15px 0;
+    flex: 0 0 15%;
+    margin-top: auto;
+    font-size: 0.9rem;
+}
+
+/* Responsywność */
+@media (max-width: 768px) {
+    .banner {
+        font-size: 2rem;
+    }
+
+    nav {
+        padding: 8px 0;
+    }
+
+    nav a {
+        padding: 8px 15px;
+    }
+
+    .main {
+        padding: 15px;
+    }
+
+    .footer {
+        font-size: 0.8rem;
+    }
+}

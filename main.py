@@ -1,6 +1,9 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from typing import List
-from models import User, Trainer, Session, Equipment, Booking, Review
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+from models import User, Trainer, Session, Equipment, Booking, Review, UserResponse
 import mysql.connector
 
 
@@ -18,30 +21,29 @@ def get_db_connection():
         raise HTTPException(status_code=500, detail="Database connection failed.")
 
 app = FastAPI()
+templates = Jinja2Templates(directory="Templates") 
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
-def read_root():
-    return {
-        "message": "Welcome to the API!",
-        "endpoints": ["/users", "/sessions", "/equipment"]
-    }
+def read_root(request: Request):
+    return templates.TemplateResponse("main.html", {"request": request, "title": "Główna Strona"})
 
 
-@app.get("/users", response_model=List[User])
-def get_users():
+@app.get("/users", response_class=HTMLResponse)
+def get_users(request: Request):
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM user")
+        cursor.execute("SELECT id, name, surname, role_id FROM user")
         users = cursor.fetchall()
         cursor.close()
         conn.close()
-        return users
+        return templates.TemplateResponse("users.html", {"request": request, "users": users, "title": "Users List"})
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/users/{id}", response_model=User)
-def get_user(id: int):
+@app.get("/users/{id}")
+def get_user_profile(id: int, request: Request):
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
@@ -51,9 +53,10 @@ def get_user(id: int):
         conn.close()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
-        return user
+        return templates.TemplateResponse("user_profile.html", {"request": request, "user": user, "title": f"Profile of {user['name']} {user['surname']}"})
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/users", response_model=User)
 def create_user(user: User):

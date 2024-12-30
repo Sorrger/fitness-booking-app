@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import  Optional, List
 
 class User(BaseModel):
     id: Optional[int]
@@ -8,6 +8,15 @@ class User(BaseModel):
     name: str
     surname: str
     role_id: int
+
+class UserResponse(BaseModel):
+    id: int
+    name: str
+    surname: str
+    role_id: int
+
+    class Config:
+        orm_mode = True 
 
 class Trainer(BaseModel):
     id: Optional[int]

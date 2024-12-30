@@ -5,30 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
     <link rel="stylesheet" href="/static/style.css">
-
 </head>
 <body>
     <div class="content">
-        <!-- Baner -->
+        <!-- Banner -->
         <div class="banner">
-            KOKSY
+            Profile: {{ user.name }} {{ user.surname }}
         </div>
+
         <!-- Menu -->
         <nav>
-            <a href="">Home</a>
-            <a href="#">Wyszukiwarka</a>
+            <a href="/">Home</a>
             <a href="/users">Users</a>
+            <a href="#">Wyszukiwarka</a>
         </nav>
-        <!-- Treść główna -->
+
+        <!-- User Profile -->
         <div class="main">
-            <p>To jest strona główna!</p>
+            <h1>{{ user.name }} {{ user.surname }}</h1>
+            <p><strong>Email:</strong> {{ user.e_mail }}</p>
+            <p><strong>Role ID:</strong> {{ user.role_id }}</p>
+            <!-- Add other user details as necessary -->
         </div>
 
-        <!-- Przycisk menu -->
+        <!-- Footer -->
         <div class="footer">
-
+            Footer content here.
         </div>
     </div>
-
 </body>
 </html>
