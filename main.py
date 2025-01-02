@@ -47,13 +47,37 @@ def get_user_profile(id: int, request: Request):
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
+
+        # Fetch user details
         cursor.execute("SELECT * FROM user WHERE id = %s", (id,))
         user = cursor.fetchone()
-        cursor.close()
-        conn.close()
+
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
-        return templates.TemplateResponse("user_profile.html", {"request": request, "user": user, "title": f"Profile of {user['name']} {user['surname']}"})
+
+        # Fetch reviews and average rating
+        cursor.execute("""
+            SELECT r.rating, r.comment, u.name AS user_name, u.surname AS user_surname
+            FROM opinion r
+            JOIN user u ON r.user_id = u.id
+            WHERE r.trainer_id = %s
+        """, (id,))
+        reviews = cursor.fetchall()
+
+        # Calculate average rating
+        cursor.execute("SELECT AVG(rating) as average_rating FROM opinion WHERE trainer_id = %s", (id,))
+        average_rating = cursor.fetchone()['average_rating']
+
+        cursor.close()
+        conn.close()
+
+        return templates.TemplateResponse("user_profile.html", {
+            "request": request,
+            "user": user,
+            "reviews": reviews,
+            "average_rating": round(average_rating, 2) if average_rating else "No ratings",
+            "title": f"Profile of {user['name']} {user['surname']}"
+        })
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

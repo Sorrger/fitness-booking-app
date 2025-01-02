@@ -28,6 +28,31 @@
             <!-- Add other user details as necessary -->
         </div>
 
+        <!-- review -->
+        <div class="reviews-section">
+            <h2>Average Rating: {{ average_rating }}</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Surname</th>
+                        <th>Rating</th>
+                        <th>Comment</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for review in reviews %}
+                    <tr>
+                        <td>{{ review.user_name }}</td>
+                        <td>{{ review.user_surname }}</td>
+                        <td>{{ review.rating }}</td>
+                        <td>{{ review.comment }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>        
+
         <!-- Footer -->
         <div class="footer">
             Footer content here.
