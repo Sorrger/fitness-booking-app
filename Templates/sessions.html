@@ -8,12 +8,10 @@
 </head>
 <body>
     <div class="content">
-        <div class="banner">
-            KOKSY
-        </div>
+        <div class="banner">KOKSY</div>
         <nav>
             <a href="/">Home</a>
-            <a href="/sessions">Wyszukiwarka</a>
+            <a href="/sessions" class="active">Wyszukiwarka</a>
             <a href="/users">Users</a>
             <div style="float: right; color: white">
                 {% if logged_in %}
@@ -25,27 +23,33 @@
             </div>
         </nav>
         <div class="main">
-            <h1>List of Users</h1>
-            <table class="user-table">
+            <h1>Lista Sesji</h1>
+            <table border="1">
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Surname</th>
-                        <th>Role</th>
+                        <th>Tytuł</th>
+                        <th>Kategoria</th>
+                        <th>Data</th>
+                        <th>Lokalizacja</th>
+                        <th>Miejsca Zajęte</th>
+                        <th>Akcje</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for user in users %}
+                    {% for session in sessions %}
                     <tr>
-                        <td><a href="/users/{{ user.id }}">{{ user.name }}</a></td>
-                        <td>{{ user.surname }}</td>
-                        <td>{{ user.role_id }}</td>
+                        <td>{{ session.title }}</td>
+                        <td>{{ session.category }}</td>
+                        <td>{{ session.date }}</td>
+                        <td>{{ session.location }}</td>
+                        <td>{{ session.occupied_slots }} / {{ session.capacity }}</td>
+                        <td><a href="/sessions/{{ session.id }}">Szczegóły</a></td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-        <div class="footer">Footer content here.</div>
+        <div class="footer">© 2025 KOKSY</div>
     </div>
 </body>
 </html>

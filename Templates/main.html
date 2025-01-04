@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
     <link rel="stylesheet" href="/static/style.css">
-
 </head>
 <body>
     <div class="content">
@@ -13,22 +12,31 @@
         <div class="banner">
             KOKSY
         </div>
-        <!-- Menu -->
+
+        <!-- Navigation Menu -->
         <nav>
-            <a href="">Home</a>
-            <a href="#">Wyszukiwarka</a>
+            <a href="/">Home</a>
+            <a href="/sessions">Wyszukiwarka</a>
             <a href="/users">Users</a>
+
+            <!-- Right-aligned Login/Profile -->
+            <div style="float: right; color:white">
+                {% if logged_in %}
+                    <span>{{ user.name }}</span>
+                    <a href="/logout">Wyloguj się</a>
+                {% else %}
+                    <a href="/login">Zaloguj się</a>
+                {% endif %}
+            </div>
         </nav>
-        <!-- Treść główna -->
+
+        <!-- Main Content -->
         <div class="main">
             <p>To jest strona główna!</p>
         </div>
 
-        <!-- Przycisk menu -->
-        <div class="footer">
-
-        </div>
+        <!-- Footer -->
+        <div class="footer"></div>
     </div>
-
 </body>
 </html>

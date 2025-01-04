@@ -8,27 +8,27 @@
 </head>
 <body>
     <div class="content">
-        <!-- Banner -->
         <div class="banner">
-            Profile: {{ user.name }} {{ user.surname }}
+            Profile: {{ profile_user.name }} {{ profile_user.surname }}
         </div>
-
-        <!-- Menu -->
         <nav>
             <a href="/">Home</a>
+            <a href="/sessions">Wyszukiwarka</a>
             <a href="/users">Users</a>
-            <a href="#">Wyszukiwarka</a>
+            <div style="float: right; color: white">
+                {% if logged_in %}
+                    <span>{{ current_user.name }}</span>
+                    <a href="/logout">Wyloguj się</a>
+                {% else %}
+                    <a href="/login">Zaloguj się</a>
+                {% endif %}
+            </div>
         </nav>
-
-        <!-- User Profile -->
         <div class="main">
-            <h1>{{ user.name }} {{ user.surname }}</h1>
-            <p><strong>Email:</strong> {{ user.e_mail }}</p>
-            <p><strong>Role ID:</strong> {{ user.role_id }}</p>
-            <!-- Add other user details as necessary -->
+            <h1>{{ profile_user.name }} {{ profile_user.surname }}</h1>
+            <p><strong>Email:</strong> {{ profile_user.e_mail }}</p>
+            <p><strong>Role ID:</strong> {{ profile_user.role_id }}</p>
         </div>
-
-        <!-- review -->
         <div class="reviews-section">
             <h2>Average Rating: {{ average_rating }}</h2>
             <table>
@@ -43,20 +43,16 @@
                 <tbody>
                     {% for review in reviews %}
                     <tr>
-                        <td>{{ review.user_name }}</td>
-                        <td>{{ review.user_surname }}</td>
+                        <td>{{ review.reviewer_name }}</td>
+                        <td>{{ review.reviewer_surname }}</td>
                         <td>{{ review.rating }}</td>
                         <td>{{ review.comment }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
-        </div>        
-
-        <!-- Footer -->
-        <div class="footer">
-            Footer content here.
         </div>
+        <div class="footer">Footer content here.</div>
     </div>
 </body>
 </html>

@@ -70,6 +70,22 @@ nav a:hover {
     line-height: 1.6;
 }
 
+.session-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.session-table th, .session-table td {
+    border: 1px solid #ddd;
+    padding: 0.5rem;
+    text-align: left;
+}
+
+.session-table th {
+    background-color: #f4f4f4;
+}
+
 /* Stopka */
 .footer {
     background-color: #333;

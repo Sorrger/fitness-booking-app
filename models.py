@@ -33,7 +33,7 @@ class Session(BaseModel):
     location: str
     cost: float
     capacity: int
-    available_slots: int
+    avaible_slots: int
 
 class Equipment(BaseModel):
     equipment_id: Optional[int]

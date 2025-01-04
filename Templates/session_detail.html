@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="content">
+        <div class="banner">KOKSY</div>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/sessions" class="active">Wyszukiwarka</a>
+            <a href="/users">Users</a>
+            <div style="float: right; color: white">
+                {% if logged_in %}
+                    <span>{{ user.name }}</span>
+                    <a href="/logout">Wyloguj się</a>
+                {% else %}
+                    <a href="/login">Zaloguj się</a>
+                {% endif %}
+            </div>
+        </nav>
+        <div class="main">
+            <h1>{{ session.title }}</h1>
+            <p><strong>Kategoria:</strong> {{ session.category }}</p>
+            <p><strong>Data:</strong> {{ session.date }}</p>
+            <p><strong>Lokalizacja:</strong> {{ session.location }}</p>
+            <p><strong>Koszt:</strong> ${{ session.cost }}</p>
+            <p><strong>Wolne miejsca:</strong> {{ session.avaible_slots }}</p>
+            <form method="post" action="/sessions/{{ session.id }}/book">
+                {% if session.avaible_slots > 0 %}
+                <button type="submit">Zapisz się</button>
+                {% else %}
+                <p>Brak wolnych miejsc</p>
+                {% endif %}
+            </form>
+            <a href="/sessions">Wróć do listy sesji</a>
+        </div>
+        <div class="footer">© 2025 KOKSY</div>
+    </div>
+</body>
+</html>
