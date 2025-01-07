@@ -5,51 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
     <link rel="stylesheet" href="/static/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 </head>
 <body>
-    <div class="content">
-        <div class="banner">KOKSY</div>
-        <nav>
-            <a href="/">Home</a>
-            <a href="/sessions" class="active">Wyszukiwarka</a>
-            <a href="/users">Users</a>
-            <div style="float: right; color: white">
-                {% if logged_in %}
-                    <span>{{ user.name }}</span>
-                    <a href="/logout">Wyloguj się</a>
-                {% else %}
-                    <a href="/login">Zaloguj się</a>
-                {% endif %}
+    <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/">Home</a>
+                <div class="collapse navbar-collapse">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item"><a class="nav-link active" href="/sessions">Wyszukiwarka</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/users">Users</a></li>
+                    </ul>
+                </div>
+                <div style="float: right; color: white">
+                    {% if logged_in %}
+                        <span>{{ user.name }}</span>
+                        <a href="/logout" class="btn btn-outline-light btn-sm">Wyloguj się</a>
+                    {% else %}
+                        <a href="/login" class="btn btn-outline-light btn-sm">Zaloguj się</a>
+                    {% endif %}
+                </div>
             </div>
         </nav>
-        <div class="main">
-            <h1>Lista Sesji</h1>
-            <table border="1">
-                <thead>
-                    <tr>
-                        <th>Tytuł</th>
-                        <th>Kategoria</th>
-                        <th>Data</th>
-                        <th>Lokalizacja</th>
-                        <th>Miejsca Zajęte</th>
-                        <th>Akcje</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for session in sessions %}
-                    <tr>
-                        <td>{{ session.title }}</td>
-                        <td>{{ session.category }}</td>
-                        <td>{{ session.date }}</td>
-                        <td>{{ session.location }}</td>
-                        <td>{{ session.occupied_slots }} / {{ session.capacity }}</td>
-                        <td><a href="/sessions/{{ session.id }}">Szczegóły</a></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="main container mt-4">
+            <h1 class="text-center">Lista Sesji</h1>
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                {% for session in sessions %}
+                <div class="col">
+                    <div class="card" style="width: 100%;">
+                        <img src="/static/model.png" class="card-img-top" alt="...">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ session.title }}</h5>
+                            <p class="card-text">{{ session.category }}</p>
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">Data: {{ session.date }}</li>
+                            <li class="list-group-item">Lokalizacja: {{ session.location }}</li>
+                            <li class="list-group-item">Zajęte miejsca: {{ session.occupied_slots }} / {{ session.capacity }}</li>
+                        </ul>
+                        <div class="card-body">
+                            <a href="/sessions/{{ session.id }}" class="btn btn-primary">Szczegóły</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
         </div>
-        <div class="footer">© 2025 KOKSY</div>
+        <div class="footer text-center mt-4">© 2025 KOKSY</div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 </body>
 </html>
