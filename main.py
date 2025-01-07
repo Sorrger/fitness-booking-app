@@ -118,10 +118,17 @@ def get_user_profile(id: int, request: Request):
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
+
+        # Pobierz dane użytkownika
         cursor.execute("SELECT * FROM user WHERE id = %s", (id,))
         profile_user = cursor.fetchone()
 
-        # Fetch reviews
+        if not profile_user:
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Pobierz opinie na temat użytkownika
         cursor.execute("""
             SELECT r.rating, r.comment, u.name AS reviewer_name, u.surname AS reviewer_surname
             FROM opinion r
@@ -130,21 +137,27 @@ def get_user_profile(id: int, request: Request):
         """, (id,))
         reviews = cursor.fetchall()
 
+        # Oblicz średnią ocenę
+        if reviews:
+            average_rating = sum([review['rating'] for review in reviews]) / len(reviews)
+        else:
+            average_rating = None  # Brak ocen
+
         cursor.close()
         conn.close()
 
-        if not profile_user:
-            raise HTTPException(status_code=404, detail="User not found")
-
+        # Przekaż dane do szablonu
         return templates.TemplateResponse("user_profile.html", {
             "request": request,
             "profile_user": profile_user,  
             "reviews": reviews,
+            "average_rating": average_rating,  # Dodano średnią ocenę
             "logged_in": current_user_id is not None,
-            "current_user": current_user 
+            "current_user": current_user
         })
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 
 @app.get("/sessions", response_class=HTMLResponse)
@@ -179,19 +192,100 @@ def view_session(id: int, request: Request):
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
+
+        # Pobierz dane sesji
         cursor.execute("SELECT * FROM session WHERE id = %s", (id,))
         session = cursor.fetchone()
+
+        if not session:
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=404, detail="Session not found")
+
+        is_registered = False
+        if current_user_id:
+            cursor.execute("""
+                SELECT * FROM booking
+                WHERE user_id = %s AND session_id = %s
+            """, (current_user_id, id))
+            booking = cursor.fetchone()
+            is_registered = booking is not None
+
         cursor.close()
         conn.close()
 
-        if not session:
-            raise HTTPException(status_code=404, detail="Session not found")
-
+        # Przekaż dane do szablonu
         return templates.TemplateResponse("session_detail.html", {
             "request": request,
             "session": session,
+            "is_registered": is_registered,  
             "logged_in": current_user_id is not None,
             "user": user
         })
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/sessions/{id}/book")
+def book_session(id: int, request: Request):
+    # Sprawdź, czy użytkownik jest zalogowany
+    current_user_id = get_current_user(request)
+    if not current_user_id:
+        # Jeśli nie jest zalogowany, zwróć błąd lub przekieruj na login
+        raise HTTPException(
+            status_code=401,
+            detail="Musisz być zalogowany, aby się zapisać."
+        )
+
+    try:
+        # Połącz się z bazą
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # Sprawdź, czy sesja istnieje i ma wolne miejsca
+        cursor.execute("SELECT * FROM session WHERE id = %s", (id,))
+        session_data = cursor.fetchone()
+
+        if not session_data:
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=404, detail="Taka sesja nie istnieje.")
+
+        if session_data["avaible_slots"] <= 0:
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=400, detail="Brak wolnych miejsc w tej sesji.")
+
+        # (Opcjonalnie) sprawdź, czy użytkownik już zapisał się na tę sesję
+        # Można to rozwiązać np. przez unikalny klucz (user_id, session_id) w tabeli rezerwacji
+        cursor.execute("""
+            SELECT * FROM booking
+            WHERE user_id = %s AND session_id = %s
+        """, (current_user_id, id))
+        existing_booking = cursor.fetchone()
+        if existing_booking:
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=400, detail="Jesteś już zapisany na tę sesję.")
+
+        # Dodaj nowy rekord w tabeli booking (rezerwacje)
+        cursor.execute("""
+            INSERT INTO booking (user_id, session_id, status)
+            VALUES (%s, %s, %s)
+        """, (current_user_id, id, 'confirmed'))
+
+        # Zmniejsz liczbę wolnych miejsc w sesji
+        cursor.execute("""
+            UPDATE session
+            SET avaible_slots = avaible_slots - 1
+            WHERE id = %s
+        """, (id,))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        # Przekieruj z powrotem do strony sesji (lub np. do listy sesji)
+        return RedirectResponse(url=f"/sessions/{id}", status_code=302)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

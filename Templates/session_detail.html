@@ -30,12 +30,22 @@
             <p><strong>Koszt:</strong> ${{ session.cost }}</p>
             <p><strong>Wolne miejsca:</strong> {{ session.avaible_slots }}</p>
             <form method="post" action="/sessions/{{ session.id }}/book">
-                {% if session.avaible_slots > 0 %}
-                <button type="submit">Zapisz się</button>
+                {% if logged_in %}
+                    {% if is_registered %}
+                        <p>Jesteś już zapisany na tę sesję.</p>
+                    {% else %}
+                        {% if session.avaible_slots > 0 %}
+                            <button type="submit">Zapisz się</button>
+                        {% else %}
+                            <p>Brak wolnych miejsc</p>
+                        {% endif %}
+                    {% endif %}
                 {% else %}
-                <p>Brak wolnych miejsc</p>
+                    <p>Musisz być zalogowany, aby się zapisać</p>
                 {% endif %}
             </form>
+            
+            
             <a href="/sessions">Wróć do listy sesji</a>
         </div>
         <div class="footer">© 2025 KOKSY</div>
