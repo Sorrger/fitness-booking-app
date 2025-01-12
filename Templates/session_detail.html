@@ -29,13 +29,18 @@
             <p><strong>Lokalizacja:</strong> {{ session.location }}</p>
             <p><strong>Koszt:</strong> ${{ session.cost }}</p>
             <p><strong>Wolne miejsca:</strong> {{ session.avaible_slots }}</p>
-            <form method="post" action="/sessions/{{ session.id }}/book">
+            <div>
                 {% if logged_in %}
                     {% if is_registered %}
                         <p>Jesteś już zapisany na tę sesję.</p>
+                        <form method="post" action="/sessions/{{ session.id }}/unregister">
+                            <button type="submit">Wypisz się</button>
+                        </form>
                     {% else %}
                         {% if session.avaible_slots > 0 %}
-                            <button type="submit">Zapisz się</button>
+                            <form method="post" action="/sessions/{{ session.id }}/book">
+                                <button type="submit">Zapisz się</button>
+                            </form>
                         {% else %}
                             <p>Brak wolnych miejsc</p>
                         {% endif %}
@@ -43,8 +48,7 @@
                 {% else %}
                     <p>Musisz być zalogowany, aby się zapisać</p>
                 {% endif %}
-            </form>
-            
+            </div>
             
             <a href="/sessions">Wróć do listy sesji</a>
         </div>

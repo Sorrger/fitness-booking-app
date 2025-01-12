@@ -30,6 +30,29 @@
         </nav>
         <div class="main container mt-4">
             <h1 class="text-center">Lista Sesji</h1>
+            <form method="get" action="/sessions" class="mb-4">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <input 
+                            type="text" 
+                            name="search" 
+                            class="form-control" 
+                            placeholder="Szukaj po nazwie..." 
+                            value="{{ search or '' }}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <select name="category" class="form-select">
+                            <option value="">Wszystkie kategorie</option>
+                            <option value="Fitness" {% if category == 'Fitness' %}selected{% endif %}>Fitness</option>
+                            <option value="Strength" {% if category == 'Strength' %}selected{% endif %}>Strength</option>
+                            <option value="Cardio" {% if category == 'Cardio' %}selected{% endif %}>Cardio</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <button type="submit" class="btn btn-primary w-100">Szukaj</button>
+                    </div>
+                </div>
+            </form>
             <div class="row row-cols-1 row-cols-md-3 g-4">
                 {% for session in sessions %}
                 <div class="col">

@@ -161,17 +161,30 @@ def get_user_profile(id: int, request: Request):
 
 
 @app.get("/sessions", response_class=HTMLResponse)
-def list_sessions(request: Request):
+def list_sessions(request: Request, search: str = None, category: str = None):
     current_user_id = get_current_user(request)
     user = get_user_details(current_user_id) if current_user_id else None
 
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("""
+        
+        query = """
             SELECT id, title, category, date, location, capacity, capacity - avaible_slots AS occupied_slots
             FROM session
-        """)
+            WHERE 1=1
+        """
+        params = []
+
+        if search:
+            query += " AND title LIKE %s"
+            params.append(f"%{search}%")
+        
+        if category:
+            query += " AND category = %s"
+            params.append(category)
+
+        cursor.execute(query, params)
         sessions = cursor.fetchall()
         cursor.close()
         conn.close()
@@ -179,10 +192,13 @@ def list_sessions(request: Request):
             "request": request,
             "sessions": sessions,
             "logged_in": current_user_id is not None,
-            "user": user
+            "user": user,
+            "search": search,
+            "category": category
         })
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/sessions/{id}", response_class=HTMLResponse)
 def view_session(id: int, request: Request):
@@ -286,6 +302,54 @@ def book_session(id: int, request: Request):
         conn.close()
 
         # Przekieruj z powrotem do strony sesji (lub np. do listy sesji)
+        return RedirectResponse(url=f"/sessions/{id}", status_code=302)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.post("/sessions/{id}/unregister")
+def unregister_session(id: int, request: Request):
+    # Check if the user is logged in
+    current_user_id = get_current_user(request)
+    if not current_user_id:
+        raise HTTPException(
+            status_code=401,
+            detail="Musisz być zalogowany, aby się wypisać."
+        )
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # Check if the user is registered for the session
+        cursor.execute("""
+            SELECT * FROM booking
+            WHERE user_id = %s AND session_id = %s
+        """, (current_user_id, id))
+        booking = cursor.fetchone()
+
+        if not booking:
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=400, detail="Nie jesteś zapisany na tę sesję.")
+
+        # Remove the booking
+        cursor.execute("""
+            DELETE FROM booking
+            WHERE user_id = %s AND session_id = %s
+        """, (current_user_id, id))
+
+        # Increase the available slots for the session
+        cursor.execute("""
+            UPDATE session
+            SET avaible_slots = avaible_slots + 1
+            WHERE id = %s
+        """, (id,))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        # Redirect to the session details page
         return RedirectResponse(url=f"/sessions/{id}", status_code=302)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
