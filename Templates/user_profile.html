@@ -4,55 +4,81 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <div class="content">
-        <div class="banner">
-            Profile: {{ profile_user.name }} {{ profile_user.surname }}
-        </div>
-        <nav>
-            <a href="/">Home</a>
-            <a href="/sessions">Wyszukiwarka</a>
-            <a href="/users">Users</a>
-            <div style="float: right; color: white">
-                {% if logged_in %}
-                    <span>{{ current_user.name }}</span>
-                    <a href="/logout">Wyloguj się</a>
-                {% else %}
-                    <a href="/login">Zaloguj się</a>
-                {% endif %}
+    <style>
+        body{
+            font-family: Arial, Helvetica, sans-serif;
+        }
+    </style>
+    <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/">NAZWA STRONY</a>
+                <div class="collapse navbar-collapse">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+                        <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/users">Users</a></li>
+                    </ul>
+                    <div style="float: right; color: white">
+
+                        {% if logged_in %}
+                            <span class="text-light me-3">{{ current_user.name }}</span>
+                            <a href="/logout" class="btn btn-outline-light btn-sm">Wyloguj się</a>
+                        {% else %}
+                            <a href="/login" class="btn btn-outline-light btn-sm">Zaloguj się</a>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
         </nav>
+
+        
+
         <div class="main">
-            <h1>{{ profile_user.name }} {{ profile_user.surname }}</h1>
-            <p><strong>Email:</strong> {{ profile_user.e_mail }}</p>
-            <p><strong>Role ID:</strong> {{ profile_user.role_id }}</p>
+            <h1 class="text-center mb-4">Profil: {{ profile_user.name }} {{ profile_user.surname }}</h1>
+            <div class="card mb-4">
+                <div class="card-body">
+                    <p><strong>Email:</strong> {{ profile_user.e_mail }}</p>
+                    <p><strong>Role ID:</strong> {{ profile_user.role_id }}</p>
+                </div>
+            </div>
+            <div class="reviews-section">
+                <h2 class="mb-4">Oceny</h2>
+                <table class="table table-striped table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Imię</th>
+                            <th>Nazwisko</th>
+                            <th>Ocena</th>
+                            <th>Komentarz</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for review in reviews %}
+                        <tr>
+                            <td>{{ review.reviewer_name }}</td>
+                            <td>{{ review.reviewer_surname }}</td>
+                            <td>{{ review.rating }}</td>
+                            <td>{{ review.comment }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-4 text-center">
+                <a href="/users" class="btn btn-secondary">Powrót do listy użytkowników</a>
+            </div>
         </div>
-        <div class="reviews-section">
-            <h2>Average Rating: {{ average_rating }}</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Surname</th>
-                        <th>Rating</th>
-                        <th>Comment</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for review in reviews %}
-                    <tr>
-                        <td>{{ review.reviewer_name }}</td>
-                        <td>{{ review.reviewer_surname }}</td>
-                        <td>{{ review.rating }}</td>
-                        <td>{{ review.comment }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div class="footer">Footer content here.</div>
+
+        <footer class="footer bg-dark text-light text-center py-3 mt-4">
+            &copy; 2025 KOKSY
+        </footer>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 </body>
 </html>

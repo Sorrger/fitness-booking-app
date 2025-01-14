@@ -76,18 +76,6 @@ def logout():
     response.delete_cookie("user_id")
     return response
 
-@app.get("/", response_class=HTMLResponse)
-def read_root(request: Request):
-    current_user_id = get_current_user(request)
-    user = get_user_details(current_user_id) if current_user_id else None
-
-    return templates.TemplateResponse("main.html", {
-        "request": request,
-        "title": "Główna Strona",
-        "logged_in": current_user_id is not None,
-        "user": user
-    })
-
 @app.get("/users", response_class=HTMLResponse)
 def get_users(request: Request):
     current_user_id = get_current_user(request)
@@ -160,7 +148,7 @@ def get_user_profile(id: int, request: Request):
 
 
 
-@app.get("/sessions", response_class=HTMLResponse)
+@app.get("/", response_class=HTMLResponse)
 def list_sessions(request: Request, search: str = None, category: str = None):
     current_user_id = get_current_user(request)
     user = get_user_details(current_user_id) if current_user_id else None
