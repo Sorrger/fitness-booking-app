@@ -75,7 +75,13 @@ def login(email: str = Form(...), password: str = Form(...)):
 
         # Set session cookie
         response = RedirectResponse(url="/", status_code=302)
-        response.set_cookie(key="user_id", value=str(user["id"]), httponly=True)
+        response.set_cookie(
+            key="user_id",
+            value=str(user["id"]),
+            httponly=True,
+            samesite="Lax", 
+            secure=False  
+        )
 
         return response
     except Exception as e:
@@ -216,6 +222,50 @@ def get_users(request: Request, query: str = None):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/users/{id}/review")
+def add_or_update_review(
+    id: int,
+    request: Request,
+    rating: int = Form(...),
+    comment: str = Form(...)
+):
+    current_user_id = get_current_user(request)
+    if not current_user_id:
+        raise HTTPException(status_code=401, detail="Musisz być zalogowany, aby dodać opinię.")
+    
+    if current_user_id == id:
+        raise HTTPException(status_code=400, detail="Nie możesz ocenić samego siebie.")
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        cursor.execute(
+            "SELECT id FROM opinion WHERE user_id = %s AND trainer_id = %s",
+            (current_user_id, id)
+        )
+        existing_review = cursor.fetchone()
+        
+        if existing_review:
+            cursor.execute(
+                "UPDATE opinion SET rating = %s, comment = %s WHERE id = %s",
+                (rating, comment, existing_review["id"])
+            )
+            conn.commit()
+        else:
+            cursor.execute(
+                "INSERT INTO opinion (user_id, trainer_id, rating, comment) VALUES (%s, %s, %s, %s)",
+                (current_user_id, id, rating, comment)
+            )
+            conn.commit()
+        
+        cursor.close()
+        conn.close()
+        
+        return RedirectResponse(url=f"/users/{id}", status_code=303)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/users/{id}", response_class=HTMLResponse)
 def get_user_profile(id: int, request: Request):
     current_user_id = get_current_user(request)
@@ -225,44 +275,42 @@ def get_user_profile(id: int, request: Request):
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
-        # Pobierz dane użytkownika
         cursor.execute("SELECT * FROM user WHERE id = %s", (id,))
         profile_user = cursor.fetchone()
 
         if not profile_user:
-            cursor.close()
-            conn.close()
             raise HTTPException(status_code=404, detail="User not found")
 
-        # Pobierz opinie na temat użytkownika
-        cursor.execute("""
-            SELECT r.rating, r.comment, u.name AS reviewer_name, u.surname AS reviewer_surname
-            FROM opinion r
-            JOIN user u ON r.user_id = u.id
-            WHERE r.trainer_id = %s
-        """, (id,))
+        cursor.execute(
+            "SELECT r.id, r.rating, r.comment, u.name AS reviewer_name, u.surname AS reviewer_surname FROM opinion r "
+            "JOIN user u ON r.user_id = u.id WHERE r.trainer_id = %s",
+            (id,)
+        )
         reviews = cursor.fetchall()
 
-        # Oblicz średnią ocenę
-        if reviews:
-            average_rating = sum([review['rating'] for review in reviews]) / len(reviews)
-        else:
-            average_rating = None  # Brak ocen
-
+        user_review = None
+        if current_user_id:
+            cursor.execute(
+                "SELECT id, rating, comment FROM opinion WHERE user_id = %s AND trainer_id = %s",
+                (current_user_id, id)
+            )
+            user_review = cursor.fetchone()
+        
         cursor.close()
         conn.close()
 
-        # Przekaż dane do szablonu
         return templates.TemplateResponse("user_profile.html", {
             "request": request,
-            "profile_user": profile_user,  
+            "profile_user": profile_user,
             "reviews": reviews,
-            "average_rating": average_rating,  # Dodano średnią ocenę
+            "user_review": user_review,
             "logged_in": current_user_id is not None,
             "current_user": current_user
         })
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
 
 
 
