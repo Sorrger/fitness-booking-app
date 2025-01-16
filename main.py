@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from models import User, Trainer, Session, Equipment, Booking, Review, UserResponse
@@ -87,6 +87,59 @@ def logout():
     response.delete_cookie("user_id")
     return response
 
+@app.get("/register", response_class=HTMLResponse)
+def register_page(request: Request):
+    """Wyświetla stronę rejestracji."""
+    return templates.TemplateResponse("register.html", {"request": request, "title": "Rejestracja"})
+
+
+@app.post("/register")
+async def register(
+    request: Request,
+    name: str = Form(...),
+    surname: str = Form(...),
+    email: str = Form(...),
+    password: str = Form(...),
+    confirm_password: str = Form(...),
+    role_id: int = Form(...)
+):
+    """Rejestruje nowego użytkownika jako trener (role_id=3) lub zwykły użytkownik (role_id=2)."""
+
+    # Walidacja haseł
+    if password != confirm_password:
+        return JSONResponse(status_code=400, content={"error": "Hasła się nie zgadzają."})
+
+    # Walidacja roli
+    if role_id not in [2, 3]:
+        return JSONResponse(status_code=400, content={"error": "Nieprawidłowa rola użytkownika."})
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        # Sprawdzenie, czy użytkownik już istnieje
+        cursor.execute("SELECT id FROM user WHERE e_mail = %s", (email,))
+        existing_user = cursor.fetchone()
+        if existing_user:
+            cursor.close()
+            conn.close()
+            return JSONResponse(status_code=400, content={"error": "Użytkownik z takim e-mailem już istnieje."})
+
+        # Wstawienie nowego użytkownika do bazy danych
+        cursor.execute(
+            "INSERT INTO user (name, surname, e_mail, password, role_id) VALUES (%s, %s, %s, %s, %s)",
+            (name, surname, email, password, role_id)
+        )
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return JSONResponse(status_code=200, content={"success": "Rejestracja zakończona sukcesem! Możesz się zalogować."})
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -139,7 +192,7 @@ def get_users(request: Request):
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT id, name, surname, role_id FROM user")
+        cursor.execute("SELECT id, name, surname, role_id FROM user WHERE role_id = 3")
         users = cursor.fetchall()
         cursor.close()
         conn.close()
