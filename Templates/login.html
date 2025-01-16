@@ -56,22 +56,25 @@
         <div class="footer text-center mt-4">© TrenujRazem</div>
     </div>
     <script>
-        document.getElementById("login-form").addEventListener("submit", async function(event) {
-            event.preventDefault();
-            let formData = new FormData(this);
-            let response = await fetch("/login", {
-                method: "POST",
-                body: formData
+            document.getElementById("login-form").addEventListener("submit", async function(event) {
+                event.preventDefault();
+                
+                let formData = new FormData(this);
+                let response = await fetch("/login", {
+                    method: "POST",
+                    body: formData
+                });
+
+                // Sprawdź, czy odpowiedź zawiera przekierowanie
+                if (response.redirected) {
+                    window.location.href = response.url; // Ręcznie przekieruj użytkownika
+                } else {
+                    let errorMessageDiv = document.getElementById("error-message");
+                    errorMessageDiv.classList.remove("d-none");
+                    errorMessageDiv.textContent = "Wpisano niepoprawne dane";
+                }
             });
-            let result = await response.json();
-            let errorMessageDiv = document.getElementById("error-message");
-            if (response.status !== 200) {
-                errorMessageDiv.classList.remove("d-none");
-                errorMessageDiv.textContent = "Wpisano niepoprawne dane";
-            } else {
-                window.location.href = "/";
-            }
-        });
+
     </script>
 </body>
 </html>

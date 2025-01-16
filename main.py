@@ -56,7 +56,14 @@ def get_current_user(request: Request):
 
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
+    user_id = request.cookies.get("user_id")
+    
+    # Jeśli użytkownik jest już zalogowany, przekieruj na stronę główną
+    if user_id:
+        return RedirectResponse(url="/", status_code=303)
+
     return templates.TemplateResponse("login.html", {"request": request, "title": "Login"})
+
 
 @app.post("/login")
 def login(email: str = Form(...), password: str = Form(...)):
@@ -74,7 +81,7 @@ def login(email: str = Form(...), password: str = Form(...)):
             raise HTTPException(status_code=401, detail="Invalid email or password")
 
         # Set session cookie
-        response = RedirectResponse(url="/", status_code=302)
+        response = RedirectResponse(url="/", status_code=303)
         response.set_cookie(
             key="user_id",
             value=str(user["id"]),
