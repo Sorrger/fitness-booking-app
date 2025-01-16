@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from models import User, Trainer, Session, Equipment, Booking, Review, UserResponse
+from datetime import datetime
 import mysql.connector
 
 # Initialize FastAPI app
@@ -24,24 +25,34 @@ def get_db_connection():
     except mysql.connector.Error as err:
         print(f"Database connection error: {err}")
         raise HTTPException(status_code=500, detail="Database connection failed.")
+    
+def get_user_details(user_id):
+    if not user_id:
+        return None
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT id, name FROM user WHERE id = %s", (user_id,))
+    user = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    return user
+
+def get_user_role(user_id):
+    if not user_id:
+        return None
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT role_id FROM user WHERE id = %s", (user_id,))
+    role = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    return role[0] if role else None
 
 # Function to retrieve the current user ID from session cookies
 def get_current_user(request: Request):
     user_id = request.cookies.get("user_id")
     return int(user_id) if user_id else None
 
-# Function to fetch user details
-def get_user_details(user_id):
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT name FROM user WHERE id = %s", (user_id,))
-        user = cursor.fetchone()
-        cursor.close()
-        conn.close()
-        return user
-    except Exception:
-        return None
 
 @app.get("/login", response_class=HTMLResponse)
 def login_page(request: Request):
@@ -75,6 +86,50 @@ def logout():
     response = RedirectResponse(url="/", status_code=302)
     response.delete_cookie("user_id")
     return response
+
+
+
+@app.get("/", response_class=HTMLResponse)
+def list_sessions(request: Request, search: str = None, category: str = None):
+    current_user_id = get_current_user(request)
+    user = get_user_details(current_user_id) if current_user_id else None
+    user_role = get_user_role(current_user_id)
+    
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        
+        query = """
+            SELECT id, title, category, date, location, capacity, capacity - avaible_slots AS occupied_slots
+            FROM session
+            WHERE 1=1
+        """
+        params = []
+
+        if search:
+            query += " AND title LIKE %s"
+            params.append(f"%{search}%")
+        
+        if category:
+            query += " AND category = %s"
+            params.append(category)
+
+        cursor.execute(query, params)
+        sessions = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        
+        return templates.TemplateResponse("sessions.html", {
+            "request": request,
+            "sessions": sessions,
+            "logged_in": current_user_id is not None,
+            "user": user,
+            "user_role": user_role,
+            "search": search,
+            "category": category
+        })
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/users", response_class=HTMLResponse)
 def get_users(request: Request):
@@ -148,45 +203,48 @@ def get_user_profile(id: int, request: Request):
 
 
 
-@app.get("/", response_class=HTMLResponse)
-def list_sessions(request: Request, search: str = None, category: str = None):
+@app.get("/create-session", response_class=HTMLResponse)
+def create_session_page(request: Request):
+    return templates.TemplateResponse("create_session.html", {"request": request})
+
+# Obsługa formularza i zapis do bazy danych
+@app.post("/create-session")
+def create_session(
+    request: Request,
+    title: str = Form(...),
+    description: str = Form(...),
+    category: str = Form(...),
+    date: str = Form(...),
+    location: str = Form(...),
+    cost: float = Form(...),
+    capacity: int = Form(...)
+):
     current_user_id = get_current_user(request)
-    user = get_user_details(current_user_id) if current_user_id else None
+
+    # Sprawdzenie poprawności danych
+    if len(title) > 30 or len(category) > 30:
+        raise HTTPException(status_code=400, detail="Tytuł i kategoria nie mogą przekraczać 30 znaków.")
+    try:
+        datetime.strptime(date, "%Y-%m-%d")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Nieprawidłowy format daty.")
+    if cost < 0 or capacity < 1:
+        raise HTTPException(status_code=400, detail="Koszt musi być nieujemny, a pojemność większa od 0.")
 
     try:
         conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        
-        query = """
-            SELECT id, title, category, date, location, capacity, capacity - avaible_slots AS occupied_slots
-            FROM session
-            WHERE 1=1
-        """
-        params = []
+        cursor = conn.cursor()
 
-        if search:
-            query += " AND title LIKE %s"
-            params.append(f"%{search}%")
-        
-        if category:
-            query += " AND category = %s"
-            params.append(category)
-
-        cursor.execute(query, params)
-        sessions = cursor.fetchall()
+        cursor.execute(
+            "INSERT INTO session (trainer_id, title, description, category, date, location, cost, capacity, avaible_slots) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            (current_user_id, title, description, category, date, location, cost, capacity, capacity)
+        )
+        conn.commit()
         cursor.close()
         conn.close()
-        return templates.TemplateResponse("sessions.html", {
-            "request": request,
-            "sessions": sessions,
-            "logged_in": current_user_id is not None,
-            "user": user,
-            "search": search,
-            "category": category
-        })
+        return RedirectResponse(url="/", status_code=303)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @app.get("/sessions/{id}", response_class=HTMLResponse)
 def view_session(id: int, request: Request):
@@ -197,7 +255,7 @@ def view_session(id: int, request: Request):
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
-        # Pobierz dane sesji
+        # Pobierz dane sesji, w tym ID trenera
         cursor.execute("SELECT * FROM session WHERE id = %s", (id,))
         session = cursor.fetchone()
 
@@ -224,10 +282,12 @@ def view_session(id: int, request: Request):
             "session": session,
             "is_registered": is_registered,  
             "logged_in": current_user_id is not None,
-            "user": user
+            "user": user,
+            "trainer_id": session["trainer_id"]
         })
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 
 @app.post("/sessions/{id}/book")
