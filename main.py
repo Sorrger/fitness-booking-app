@@ -185,23 +185,33 @@ def list_sessions(request: Request, search: str = None, category: str = None):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/users", response_class=HTMLResponse)
-def get_users(request: Request):
+def get_users(request: Request, query: str = None):
     current_user_id = get_current_user(request)
     user = get_user_details(current_user_id) if current_user_id else None
 
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT id, name, surname, role_id FROM user WHERE role_id = 3")
+        
+        sql_query = "SELECT id, name, surname, role_id FROM user WHERE role_id = 3"
+        params = []
+        
+        if query:
+            sql_query += " AND (surname LIKE %s)"
+            params.extend([f"%{query}%"])
+        
+        cursor.execute(sql_query, params)
         users = cursor.fetchall()
         cursor.close()
         conn.close()
+        
         return templates.TemplateResponse("users.html", {
             "request": request,
             "users": users,
             "title": "Users List",
             "logged_in": current_user_id is not None,
-            "user": user
+            "user": user,
+            "query": query  # przekazujemy zapytanie do szablonu
         })
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

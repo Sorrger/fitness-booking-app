@@ -36,7 +36,12 @@
         </nav>
         <div class="main container mt-4">
             <h1 class="text-center">Lista Użytkowników</h1>
-
+            <form method="get" action="/users" class="mb-3">
+                <div class="input-group">
+                    <input type="text" name="query" class="form-control" placeholder="Wyszukaj użytkownika" value="{{ query or '' }}">
+                    <button type="submit" class="btn btn-primary">Szukaj</button>
+                </div>
+            </form>
             <table class="table table-striped table-bordered">
                 <thead class="table-dark">
                     <tr>
