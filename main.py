@@ -547,3 +547,36 @@ def unregister_session(id: int, request: Request):
         return JSONResponse(status_code=200, content={"success": True, "session_id": id})
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
+    
+@app.post("/sessions/{id}/delete")
+def delete_session(id: int, request: Request):
+    current_user_id = get_current_user(request)
+    if not current_user_id:
+        return JSONResponse(status_code=401, content={"error": "Musisz być zalogowany, aby usunąć sesję."})
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.execute("SELECT trainer_id FROM session WHERE id = %s", (id,))
+        session = cursor.fetchone()
+
+        if not session:
+            cursor.close()
+            conn.close()
+            return JSONResponse(status_code=404, content={"error": "Sesja nie istnieje."})
+
+        if session["trainer_id"] != current_user_id:
+            cursor.close()
+            conn.close()
+            return JSONResponse(status_code=403, content={"error": "Nie możesz usunąć tej sesji."})
+
+        cursor.execute("DELETE FROM session WHERE id = %s", (id,))
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return JSONResponse(status_code=200, content={"success": True, "session_id": id})
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+

@@ -6,21 +6,46 @@
     <title>Moje Zajęcia</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="/static/style.css">
+    
     <script>
         document.addEventListener("DOMContentLoaded", function () {
+            // Wypisanie z sesji
             document.querySelectorAll(".unregister-btn").forEach(button => {
                 button.addEventListener("click", async function () {
                     let sessionId = this.getAttribute("data-session-id");
-                    
+
                     let response = await fetch(`/sessions/${sessionId}/unregister`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" }
                     });
-    
+
                     let result = await response.json();
-    
+
                     if (response.ok) {
-                        // Usuń wiersz z tabeli
+                        this.closest("tr").remove();
+                    } else {
+                        alert(result.error || "Wystąpił błąd.");
+                    }
+                });
+            });
+
+            // Usunięcie stworzonych sesji
+            document.querySelectorAll(".delete-session-btn").forEach(button => {
+                button.addEventListener("click", async function () {
+                    let sessionId = this.getAttribute("data-session-id");
+
+                    if (!confirm("Czy na pewno chcesz usunąć tę sesję?")) {
+                        return;
+                    }
+
+                    let response = await fetch(`/sessions/${sessionId}/delete`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" }
+                    });
+
+                    let result = await response.json();
+
+                    if (response.ok) {
                         this.closest("tr").remove();
                     } else {
                         alert(result.error || "Wystąpił błąd.");
@@ -29,7 +54,6 @@
             });
         });
     </script>
-    
 </head>
 <body>
     <div class="container">
@@ -104,6 +128,7 @@
                                 <td>{{ session.category }}</td>
                                 <td>
                                     <a href="/sessions/{{ session.id }}" class="btn btn-primary btn-sm">Szczegóły</a>
+                                    <button class="btn btn-danger btn-sm delete-session-btn" data-session-id="{{ session.id }}">Usuń</button>
                                 </td>
                             </tr>
                             {% endfor %}
