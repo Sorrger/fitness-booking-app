@@ -580,3 +580,109 @@ def delete_session(id: int, request: Request):
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
+@app.get("/sessions/{id}/edit", response_class=HTMLResponse)
+def edit_session(id: int, request: Request):
+    current_user_id = get_current_user(request)
+    if not current_user_id:
+        return RedirectResponse(url="/login", status_code=303)
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # Pobierz sesję i sprawdź, czy użytkownik jest właścicielem
+        cursor.execute("SELECT * FROM session WHERE id = %s", (id,))
+        session = cursor.fetchone()
+
+        if not session:
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=404, detail="Sesja nie istnieje.")
+
+        if session["trainer_id"] != current_user_id:
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=403, detail="Nie możesz edytować tej sesji.")
+
+        cursor.close()
+        conn.close()
+
+        return templates.TemplateResponse("edit_session.html", {
+            "request": request,
+            "session": session
+        })
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.post("/sessions/{id}/update")
+async def update_session(
+    id: int,
+    request: Request,
+    title: str = Form(...),
+    description: str = Form(...),
+    category: str = Form(...),
+    date: str = Form(...),
+    location: str = Form(...),
+    cost: float = Form(...),
+    capacity: int = Form(...)
+):
+    current_user_id = get_current_user(request)
+    if not current_user_id:
+        return JSONResponse(status_code=401, content={"error": "Musisz być zalogowany, aby edytować sesję."})
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # Pobranie danych sesji
+        cursor.execute("SELECT trainer_id, capacity, avaible_slots FROM session WHERE id = %s", (id,))
+        session = cursor.fetchone()
+
+        if not session:
+            cursor.close()
+            conn.close()
+            return JSONResponse(status_code=404, content={"error": "Sesja nie istnieje."})
+
+        if session["trainer_id"] != current_user_id:
+            cursor.close()
+            conn.close()
+            return JSONResponse(status_code=403, content={"error": "Nie możesz edytować tej sesji."})
+
+        # Pobranie liczby zapisanych użytkowników
+        cursor.execute("SELECT COUNT(*) AS enrolled FROM booking WHERE session_id = %s", (id,))
+        enrolled_data = cursor.fetchone()
+        enrolled_users = enrolled_data["enrolled"]
+
+        # Sprawdzenie, czy nowa pojemność nie jest mniejsza niż zapisani użytkownicy
+        if capacity < enrolled_users:
+            cursor.close()
+            conn.close()
+            return JSONResponse(status_code=400, content={
+                "error": f"Nie można zmniejszyć pojemności poniżej liczby zapisanych użytkowników ({enrolled_users})."
+            })
+
+        # Obliczenie nowych wolnych miejsc
+        new_avaible_slots = capacity - enrolled_users
+
+        # Aktualizacja sesji
+        cursor.execute("""
+            UPDATE session
+            SET title = %s, description = %s, category = %s, date = %s, location = %s, cost = %s, capacity = %s, avaible_slots = %s
+            WHERE id = %s
+        """, (title, description, category, date, location, cost, capacity, new_avaible_slots, id))
+
+        conn.commit()
+
+        # Sprawdzenie, czy aktualizacja się powiodła
+        if cursor.rowcount == 0:
+            cursor.close()
+            conn.close()
+            return JSONResponse(status_code=400, content={"error": "Nie udało się zaktualizować sesji."})
+
+        cursor.close()
+        conn.close()
+
+        # Przekierowanie po udanej edycji
+        return RedirectResponse(url="/my-sessions", status_code=303)
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
