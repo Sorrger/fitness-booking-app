@@ -196,6 +196,49 @@ def list_sessions(request: Request, search: str = None, category: str = None):
         })
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.get("/my-sessions", response_class=HTMLResponse)
+def my_sessions(request: Request):
+    current_user_id = get_current_user(request)
+    if not current_user_id:
+        return RedirectResponse(url="/login", status_code=303)
+
+    user_role = get_user_role(current_user_id)
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # Pobierz zajęcia, na które użytkownik jest zapisany
+        cursor.execute("""
+            SELECT s.id, s.title, s.date, s.location, s.category
+            FROM session s
+            JOIN booking b ON s.id = b.session_id
+            WHERE b.user_id = %s
+        """, (current_user_id,))
+        booked_sessions = cursor.fetchall()
+
+        created_sessions = []
+        if user_role == 3:
+            cursor.execute("""
+                SELECT id, title, date, location, category
+                FROM session
+                WHERE trainer_id = %s
+            """, (current_user_id,))
+            created_sessions = cursor.fetchall()
+
+        cursor.close()
+        conn.close()
+
+        return templates.TemplateResponse("my_sessions.html", {
+            "request": request,
+            "booked_sessions": booked_sessions,
+            "created_sessions": created_sessions,
+            "is_trainer": user_role == 3
+        })
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/users", response_class=HTMLResponse)
 def get_users(request: Request, query: str = None):
@@ -474,48 +517,33 @@ def book_session(id: int, request: Request):
     
 @app.post("/sessions/{id}/unregister")
 def unregister_session(id: int, request: Request):
-    # Check if the user is logged in
     current_user_id = get_current_user(request)
     if not current_user_id:
-        raise HTTPException(
-            status_code=401,
-            detail="Musisz być zalogowany, aby się wypisać."
-        )
+        return JSONResponse(status_code=401, content={"error": "Musisz być zalogowany, aby się wypisać."})
 
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
-        # Check if the user is registered for the session
-        cursor.execute("""
-            SELECT * FROM booking
-            WHERE user_id = %s AND session_id = %s
-        """, (current_user_id, id))
+        # Sprawdź, czy użytkownik jest zapisany na zajęcia
+        cursor.execute("SELECT * FROM booking WHERE user_id = %s AND session_id = %s", (current_user_id, id))
         booking = cursor.fetchone()
 
         if not booking:
             cursor.close()
             conn.close()
-            raise HTTPException(status_code=400, detail="Nie jesteś zapisany na tę sesję.")
+            return JSONResponse(status_code=400, content={"error": "Nie jesteś zapisany na tę sesję."})
 
-        # Remove the booking
-        cursor.execute("""
-            DELETE FROM booking
-            WHERE user_id = %s AND session_id = %s
-        """, (current_user_id, id))
+        # Usuń rezerwację
+        cursor.execute("DELETE FROM booking WHERE user_id = %s AND session_id = %s", (current_user_id, id))
 
-        # Increase the available slots for the session
-        cursor.execute("""
-            UPDATE session
-            SET avaible_slots = avaible_slots + 1
-            WHERE id = %s
-        """, (id,))
+        # Zwiększ liczbę wolnych miejsc
+        cursor.execute("UPDATE session SET avaible_slots = avaible_slots + 1 WHERE id = %s", (id,))
 
         conn.commit()
         cursor.close()
         conn.close()
 
-        # Redirect to the session details page
-        return RedirectResponse(url=f"/sessions/{id}", status_code=302)
+        return JSONResponse(status_code=200, content={"success": True, "session_id": id})
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return JSONResponse(status_code=500, content={"error": str(e)})
