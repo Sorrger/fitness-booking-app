@@ -4,87 +4,108 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edytuj sesję</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    
 </head>
 <body>
-    <div class="container mt-4">
-        <h2 class="text-center">Edytuj Sesję</h2>
-
-        <div id="error-message" class="alert alert-danger" style="display: none;"></div>
-
-        <form>
-            <div class="mb-3">
-                <label class="form-label">Tytuł</label>
-                <input type="text" name="title" class="form-control" value="{{ session.title }}" required>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        .nav-link, .navbar-brand, .nav-item {
+            border-radius: 5px;
+        }
+    </style>
+    <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="/">TrenujRazem</a>
+                <div class="collapse navbar-collapse">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/users">Trenerzy</a></li>
+                        {% if user_role == 3 %}
+                        <li class="nav-item"><a class="nav-link" href="/create-session">Stwórz sesję</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <div style="float: right; color: white">
+                    {% if logged_in %}
+                        <span>{{ user.name }}</span>
+                        <a href="/my-sessions" class="btn btn-outline-light btn-sm">Moje sesje</a>
+                        <a href="/logout" class="btn btn-outline-light btn-sm">Wyloguj się</a>
+                    {% else %}
+                        <a href="/login" class="btn btn-outline-light btn-sm">Zaloguj się</a>
+                        <a href="/register" class="btn btn-outline-light btn-sm ms-2">Zarejestruj się</a>
+                    {% endif %}
+                </div>
             </div>
-
-            <div class="mb-3">
-                <label class="form-label">Opis</label>
-                <textarea name="description" class="form-control" required>{{ session.description }}</textarea>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Kategoria</label>
-                <select name="category" class="form-select">
-                    <option value="Fitness" {% if session.category == 'Fitness' %}selected{% endif %}>Fitness</option>
-                    <option value="Strength" {% if session.category == 'Strength' %}selected{% endif %}>Strength</option>
-                    <option value="Cardio" {% if session.category == 'Cardio' %}selected{% endif %}>Cardio</option>
-                    <option value="Pilates" {% if session.category == 'Pilates' %}selected{% endif %}>Pilates</option>
-                </select>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Data</label>
-                <input type="date" name="date" class="form-control" value="{{ session.date }}" required>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Lokalizacja</label>
-                <input type="text" name="location" class="form-control" value="{{ session.location }}" required>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Koszt</label>
-                <input type="number" name="cost" class="form-control" value="{{ session.cost }}" step="0.01" required>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Pojemność</label>
-                <input type="number" name="capacity" class="form-control" value="{{ session.capacity }}" required>
-            </div>
-
-            <div class="text-center">
-                <button type="submit" class="btn btn-success">Zapisz zmiany</button>
-                <a href="/my-sessions" class="btn btn-secondary">Anuluj</a>
-            </div>
-        </form>
+        </nav>
+        <div class="main container mt-4">
+            <h2 class="text-center">Edytuj Sesję</h2>
+            <div id="error-message" class="alert alert-danger" style="display: none;"></div>
+            <form>
+                <div class="mb-3">
+                    <label class="form-label">Tytuł</label>
+                    <input type="text" name="title" class="form-control" value="{{ session.title }}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Opis</label>
+                    <textarea name="description" class="form-control" required>{{ session.description }}</textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Kategoria</label>
+                    <select name="category" class="form-select">
+                        <option value="Fitness" {% if session.category == 'Fitness' %}selected{% endif %}>Fitness</option>
+                        <option value="Strength" {% if session.category == 'Strength' %}selected{% endif %}>Strength</option>
+                        <option value="Cardio" {% if session.category == 'Cardio' %}selected{% endif %}>Cardio</option>
+                        <option value="Pilates" {% if session.category == 'Pilates' %}selected{% endif %}>Pilates</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Data</label>
+                    <input type="date" name="date" class="form-control" value="{{ session.date }}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Lokalizacja</label>
+                    <input type="text" name="location" class="form-control" value="{{ session.location }}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Koszt</label>
+                    <input type="number" name="cost" class="form-control" value="{{ session.cost }}" step="0.01" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Pojemność</label>
+                    <input type="number" name="capacity" class="form-control" value="{{ session.capacity }}" required>
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="btn btn-success">Zapisz zmiany</button>
+                    <a href="/my-sessions" class="btn btn-secondary">Anuluj</a>
+                </div>
+            </form>
+        </div>
+        <div class="footer text-center mt-4">© TrenujRazem</div>
     </div>
-
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const form = document.querySelector("form");
             form.addEventListener("submit", async function (event) {
                 event.preventDefault();
-
                 let formData = new FormData(form);
                 let sessionId = "{{ session.id }}";
-
-                console.log("🟡 Wysyłane dane:", Object.fromEntries(formData)); // 🛠 Debugowanie danych formularza
-
+                console.log("🟡 Wysyłane dane:", Object.fromEntries(formData));
                 let response = await fetch(`/sessions/${sessionId}/update`, {
                     method: "POST",
                     body: formData
                 });
-
                 let result;
                 try {
                     result = await response.json();
                 } catch (error) {
                     console.error("❌ Błąd parsowania JSON:", error);
                 }
-
-                console.log("🟢 Odpowiedź serwera:", result); // 🛠 Debugowanie odpowiedzi serwera
-
+                console.log("🟢 Odpowiedź serwera:", result);
                 if (!response.ok) {
                     document.getElementById("error-message").textContent = result.error;
                     document.getElementById("error-message").style.display = "block";
@@ -95,5 +116,6 @@
             });
         });
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 </body>
 </html>

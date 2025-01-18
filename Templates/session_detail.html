@@ -57,6 +57,7 @@
                 <div style="float: right; color: white">
                     {% if logged_in %}
                         <span>{{ user.name }}</span>
+                        <a href="/my-sessions" class="btn btn-outline-light btn-sm">Moje sesje</a>
                         <a href="/logout" class="btn btn-outline-light btn-sm">Wyloguj się</a>
                     {% else %}
                         <a href="/login" class="btn btn-outline-light btn-sm">Zaloguj się</a>
