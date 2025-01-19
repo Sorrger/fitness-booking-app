@@ -53,10 +53,16 @@
             <div class="container-fluid">
                 <a class="navbar-brand" href="/">TrenujRazem</a>
                 <div class="collapse navbar-collapse">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/users">Trenerzy</a></li>
-                    </ul>
+                    <div style="float: right; color: white">
+                        {% if logged_in %}
+                            <span>{{ user.name }}</span>
+                            <a href="/my-sessions" class="btn btn-outline-light btn-sm">Moje sesje</a>
+                            <a href="/logout" class="btn btn-outline-light btn-sm">Wyloguj się</a>
+                        {% else %}
+                            <a href="/login" class="btn btn-outline-light btn-sm">Zaloguj się</a>
+                            <a href="/register" class="btn btn-outline-light btn-sm ms-2">Zarejestruj się</a>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </nav>

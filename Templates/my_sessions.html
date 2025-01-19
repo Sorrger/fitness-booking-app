@@ -25,11 +25,20 @@
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
                         <li class="nav-item"><a class="nav-link" href="/users">Trenerzy</a></li>
+                        {% if is_trainer %}
+                        <li class="nav-item"><a class="nav-link" href="/create-session">Stwórz sesję</a></li>
+                        {% endif %}
                     </ul>
                 </div>
                 <div style="float: right; color: white">
-                    <a href="/my-sessions" class="btn btn-outline-light btn-sm">Moje sesje</a>
-                    <a href="/logout" class="btn btn-outline-light btn-sm">Wyloguj się</a>
+                    {% if logged_in %}
+                        <span>{{ user.name }}</span>
+                        <a href="/my-sessions" class="btn btn-outline-light btn-sm">Moje sesje</a>
+                        <a href="/logout" class="btn btn-outline-light btn-sm">Wyloguj się</a>
+                    {% else %}
+                        <a href="/login" class="btn btn-outline-light btn-sm">Zaloguj się</a>
+                        <a href="/register" class="btn btn-outline-light btn-sm ms-2">Zarejestruj się</a>
+                    {% endif %}
                 </div>
             </div>
         </nav>
@@ -70,40 +79,46 @@
             {% endif %}
 
             {% if is_trainer %}
-                <h3 class="mt-4">Zajęcia, które prowadzisz:</h3>
-                {% if created_sessions %}
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Tytuł</th>
-                                    <th>Data</th>
-                                    <th>Lokalizacja</th>
-                                    <th>Kategoria</th>
-                                    <th>Akcja</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for session in created_sessions %}
-                                <tr>
-                                    <td>{{ session.title }}</td>
-                                    <td>{{ session.date }}</td>
-                                    <td>{{ session.location }}</td>
-                                    <td>{{ session.category }}</td>
-                                    <td>
-                                        <a href="/sessions/{{ session.id }}" class="btn btn-primary btn-sm">Szczegóły</a>
-                                        <a href="/sessions/{{ session.id }}/edit" class="btn btn-warning btn-sm">Edytuj</a>
-                                        <button class="btn btn-danger btn-sm delete-session-btn" data-session-id="{{ session.id }}">Usuń</button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                {% else %}
-                    <p class="text-muted">Nie prowadzisz obecnie żadnych zajęć.</p>
-                {% endif %}
+            <div class="text-center mt-4">
+                <a href="/create-session" class="btn btn-success">Stwórz nową sesję</a>
+            </div>
+        
+            <h3 class="mt-4">Zajęcia, które prowadzisz:</h3>
+            {% if created_sessions %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Tytuł</th>
+                                <th>Data</th>
+                                <th>Lokalizacja</th>
+                                <th>Kategoria</th>
+                                <th>Akcja</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for session in created_sessions %}
+                            <tr>
+                                <td>{{ session.title }}</td>
+                                <td>{{ session.date }}</td>
+                                <td>{{ session.location }}</td>
+                                <td>{{ session.category }}</td>
+                                <td>
+                                    <a href="/sessions/{{ session.id }}" class="btn btn-primary btn-sm">Szczegóły</a>
+                                    <a href="/sessions/{{ session.id }}/edit" class="btn btn-warning btn-sm">Edytuj</a>
+                                    <button class="btn btn-danger btn-sm delete-session-btn" data-session-id="{{ session.id }}">Usuń</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">Nie prowadzisz obecnie żadnych zajęć.</p>
             {% endif %}
+        {% endif %}
+        
+        
 
             <div class="mt-4 text-center">
                 <a href="/" class="btn btn-secondary">Powrót do strony głównej</a>

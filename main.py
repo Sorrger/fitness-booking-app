@@ -203,13 +203,13 @@ def my_sessions(request: Request):
     if not current_user_id:
         return RedirectResponse(url="/login", status_code=303)
 
+    user = get_user_details(current_user_id)
     user_role = get_user_role(current_user_id)
 
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
-        # Pobierz zajęcia, na które użytkownik jest zapisany
         cursor.execute("""
             SELECT s.id, s.title, s.date, s.location, s.category
             FROM session s
@@ -219,7 +219,7 @@ def my_sessions(request: Request):
         booked_sessions = cursor.fetchall()
 
         created_sessions = []
-        if user_role == 3:
+        if user_role == 3: 
             cursor.execute("""
                 SELECT id, title, date, location, category
                 FROM session
@@ -234,43 +234,48 @@ def my_sessions(request: Request):
             "request": request,
             "booked_sessions": booked_sessions,
             "created_sessions": created_sessions,
-            "is_trainer": user_role == 3
+            "is_trainer": user_role == 3,
+            "logged_in": True,
+            "user": user,
+            "user_role": user_role
         })
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @app.get("/users", response_class=HTMLResponse)
 def get_users(request: Request, query: str = None):
     current_user_id = get_current_user(request)
     user = get_user_details(current_user_id) if current_user_id else None
+    user_role = get_user_role(current_user_id) if current_user_id else None 
 
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        
+
         sql_query = "SELECT id, name, surname, role_id FROM user WHERE role_id = 3"
         params = []
         
         if query:
             sql_query += " AND (surname LIKE %s)"
-            params.extend([f"%{query}%"])
-        
+            params.append(f"%{query}%")
+
         cursor.execute(sql_query, params)
         users = cursor.fetchall()
         cursor.close()
         conn.close()
-        
+
         return templates.TemplateResponse("users.html", {
             "request": request,
             "users": users,
-            "title": "Users List",
+            "title": "Lista Trenerów",
             "logged_in": current_user_id is not None,
             "user": user,
-            "query": query  # przekazujemy zapytanie do szablonu
+            "user_role": user_role,  
+            "query": query
         })
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.post("/users/{id}/review")
 def add_or_update_review(
@@ -315,6 +320,37 @@ def add_or_update_review(
         return RedirectResponse(url=f"/users/{id}", status_code=303)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+@app.delete("/users/{id}/review")
+def delete_review(id: int, request: Request):
+    current_user_id = get_current_user(request)
+    if not current_user_id:
+        raise HTTPException(status_code=401, detail="Musisz być zalogowany, aby usunąć opinię.")
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # Sprawdź, czy użytkownik wystawił już opinię
+        cursor.execute("SELECT id FROM opinion WHERE user_id = %s AND trainer_id = %s", (current_user_id, id))
+        review = cursor.fetchone()
+
+        if not review:
+            cursor.close()
+            conn.close()
+            raise HTTPException(status_code=404, detail="Nie znaleziono opinii do usunięcia.")
+
+        # Usuń opinię
+        cursor.execute("DELETE FROM opinion WHERE id = %s", (review["id"],))
+        conn.commit()
+
+        cursor.close()
+        conn.close()
+
+        return JSONResponse(status_code=200, content={"success": True})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/users/{id}", response_class=HTMLResponse)
 def get_user_profile(id: int, request: Request):
@@ -363,10 +399,22 @@ def get_user_profile(id: int, request: Request):
 
 
 
-
 @app.get("/create-session", response_class=HTMLResponse)
 def create_session_page(request: Request):
-    return templates.TemplateResponse("create_session.html", {"request": request})
+    current_user_id = get_current_user(request)
+    if not current_user_id:
+        return RedirectResponse(url="/login", status_code=303)
+
+    current_user = get_user_details(current_user_id)
+    user_role = get_user_role(current_user_id)
+
+    return templates.TemplateResponse("create_session.html", {
+        "request": request,
+        "logged_in": True,
+        "user": current_user,
+        "user_role": user_role
+    })
+
 
 # Obsługa formularza i zapis do bazy danych
 @app.post("/create-session")
