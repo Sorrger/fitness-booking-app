@@ -56,7 +56,6 @@
                     <tr>
                         <th scope="col">Imię</th>
                         <th scope="col">Nazwisko</th>
-                        <th scope="col">Rola</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -64,8 +63,6 @@
                     <tr>
                         <td><a href="/users/{{ user.id }}" class="text-decoration-none">{{ user.name }}</a></td>
                         <td>{{ user.surname }}</td>
-                        <td>{{ user.role_id }}</td>
-                    </tr>
                     {% endfor %}
                 </tbody>
             </table>

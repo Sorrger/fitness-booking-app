@@ -631,6 +631,8 @@ def delete_session(id: int, request: Request):
 @app.get("/sessions/{id}/edit", response_class=HTMLResponse)
 def edit_session(id: int, request: Request):
     current_user_id = get_current_user(request)
+    user = get_user_details(current_user_id) if current_user_id else None
+    user_role = get_user_role(current_user_id)
     if not current_user_id:
         return RedirectResponse(url="/login", status_code=303)
 
