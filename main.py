@@ -402,6 +402,8 @@ def get_user_profile(id: int, request: Request):
 @app.get("/create-session", response_class=HTMLResponse)
 def create_session_page(request: Request):
     current_user_id = get_current_user(request)
+    user = get_user_details(current_user_id) if current_user_id else None
+    user_role = get_user_role(current_user_id)
     if not current_user_id:
         return RedirectResponse(url="/login", status_code=303)
 
@@ -412,7 +414,10 @@ def create_session_page(request: Request):
         "request": request,
         "logged_in": True,
         "user": current_user,
-        "user_role": user_role
+        "user_role": user_role,
+        "logged_in": current_user_id is not None,
+        "current_user": current_user
+
     })
 
 

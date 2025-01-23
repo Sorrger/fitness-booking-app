@@ -50,9 +50,13 @@
         </nav>
 
         <div class="main">
-            <h1 class="text-center mb-4">Profil: {{ profile_user.name }} {{ profile_user.surname }}</h1>
+            <div class="bloczek d-flex flex-row align-items-center">
+            <img src="/static/prof.jpg" alt="" width="100px">
+            <h1 class="text-center mb-4">{{ profile_user.name }} {{ profile_user.surname }}</h1>
+            </div>
             <div class="card mb-4">
-                <div class="card-body">
+                <div class="card-body" style="display: flex; flex-direction: row; justify-content: space-ar;">
+
                     <p><strong>Email:</strong> {{ profile_user.e_mail }}</p>
                 </div>
             </div>

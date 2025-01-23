@@ -63,6 +63,7 @@
                             <option value="Strength" {% if category == 'Strength' %}selected{% endif %}>Strength</option>
                             <option value="Cardio" {% if category == 'Cardio' %}selected{% endif %}>Cardio</option>
                             <option value="Pilates" {% if category == 'Pilates' %}selected{% endif %}>Pilates</option>
+                            <option value="Personalny" {% if category == 'Personalny' %}selected{% endif %}>Personalny</option>
                         </select>
                     </div>
                     <div class="col-md-2 mb-3">
@@ -74,7 +75,10 @@
                 {% for session in sessions %}
                 <div class="col">
                     <div class="card" style="width: 100%;">
-                        <img src="/static/{{ 'strength.png' if session.category == 'Strength' else 'pilates.png' if session.category == 'Pilates' else 'fitness.png' if session.category == 'Fitness' else 'cardio.png' }}" class="card-img-top" alt="...">
+                        <img src="/static/{{ 'strength.png' if session.category == 'Strength' 
+                        else 'pilates.png' if session.category == 'Pilates' 
+                        else 'fitness.png' if session.category == 'Fitness' 
+                        else 'cardio.png' }}" class="card-img-top" alt="...">
                         <div class="card-body">
                             <h5 class="card-title">{{ session.title }}</h5>
                             <p class="card-text">{{ session.category }}</p>
