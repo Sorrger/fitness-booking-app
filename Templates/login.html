@@ -65,9 +65,8 @@
                     body: formData
                 });
 
-                // Sprawdź, czy odpowiedź zawiera przekierowanie
                 if (response.redirected) {
-                    window.location.href = response.url; // Ręcznie przekieruj użytkownika
+                    window.location.href = response.url;
                 } else {
                     let errorMessageDiv = document.getElementById("error-message");
                     errorMessageDiv.classList.remove("d-none");
