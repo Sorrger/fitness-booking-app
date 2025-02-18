@@ -9,3 +9,9 @@ Instrukcja uruchomienia lokalnego:
   <li>pip install -r requirements.txt </li>
   <li>uvicorn main:app --reload   </li>
 </ul>
+
+Authors:
+<ul>
+  <li>Backend - Sorrger</li>
+  <li>FrontEnd - Kamilliush</li>
+</ul>
