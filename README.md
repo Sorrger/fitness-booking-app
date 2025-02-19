@@ -1,10 +1,17 @@
-# IO-activitysite
-uvicorn main:app --reload         ------> do startowania apki 
+Strona dla Trenerów oraz osób ćwiczacych 
 
+Instrukcja uruchomienia lokalnego:
+<ul>
+  <li>git clone https://github.com/twoja-nazwa-uzytkownika/fitness-booking-app</li>
+  <li>cd IO-activitysite</li>
+  <li>python -m venv venv</li>
+  <li>venv\Scripts\activate</li>
+  <li>pip install -r requirements.txt </li>
+  <li>uvicorn main:app --reload   </li>
+</ul>
 
-pip freeze > requirment.txt       ------> zapisywanie pip lista jak sie cos zaisntalowalo nowego
-
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt   -----> venv instrukca
-deactivate
+Authors:
+<ul>
+  <li>Backend - Sorrger</li>
+  <li>FrontEnd - Kamilliush</li>
+</ul>
