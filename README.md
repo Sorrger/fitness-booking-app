@@ -10,8 +10,7 @@ Instrukcja uruchomienia lokalnego:
   <li>uvicorn main:app --reload   </li>
 </ul>
 
-Authors:
+Author:
 <ul>
-  <li>Backend - Sorrger</li>
-  <li>FrontEnd - Kamilliush</li>
+  <li>-> Sorrger</li>
 </ul>
