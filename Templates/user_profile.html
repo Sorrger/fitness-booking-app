@@ -1,144 +1,92 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
-    <style>
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-        }
-        .nav-link, .navbar-brand {
-            border-radius: 5px;
-        }
-        .table td {
-            word-wrap: break-word;
-            white-space: normal;
-            max-width: 300px;
-            overflow-wrap: break-word;
-        }
-    </style>
-    
-    <div class="container">
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="/">TrenujRazem</a>
-                <div class="collapse navbar-collapse">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/users">Trenerzy</a></li>
-                        {% if user_role == 3 %}
-                        <li class="nav-item"><a class="nav-link" href="/create-session">Stwórz sesję</a></li>
-                        {% endif %}
-                    </ul>
-                    <div style="float: right; color: white">
-                        {% if logged_in %}
-                            <span class="text-light me-3">{{ current_user.name }}</span>
-                            <a href="/my-sessions" class="btn btn-outline-light btn-sm">Moje sesje</a>
-                            <a href="/logout" class="btn btn-outline-light btn-sm">Wyloguj się</a>
-                        {% else %}
-                            <a href="/login" class="btn btn-outline-light btn-sm">Zaloguj się</a>
-                            <a href="/register" class="btn btn-outline-light btn-sm ms-2">Zarejestruj się</a>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </nav>
+{% extends "base.html" %}
 
-        <div class="main">
-            <div class="bloczek d-flex flex-row align-items-center">
-            <img src="/static/prof.jpg" alt="" width="100px">
-            <h1 class="text-center mb-4">{{ profile_user.name }} {{ profile_user.surname }}</h1>
-            </div>
-            <div class="card mb-4">
-                <div class="card-body" style="display: flex; flex-direction: row; justify-content: space-ar;">
+{% block title %}{{ profile_user.name }} {{ profile_user.surname }}{% endblock %}
 
-                    <p><strong>Email:</strong> {{ profile_user.e_mail }}</p>
-                </div>
-            </div>
-
-            {% if logged_in and current_user.id != profile_user.id %}
-                {% if user_review %}
-                    <div class="review-form mt-4">
-                        <h2 class="mb-3">Edytuj swoją opinię</h2>
-                        <form method="post" action="/users/{{ profile_user.id }}/review">
-                            <div class="mb-3">
-                                <label for="rating" class="form-label">Ocena (1-5):</label>
-                                <select name="rating" id="rating" class="form-select" required>
-                                    <option value="1" {% if user_review.rating == 1 %}selected{% endif %}>1 - Bardzo słabo</option>
-                                    <option value="2" {% if user_review.rating == 2 %}selected{% endif %}>2 - Słabo</option>
-                                    <option value="3" {% if user_review.rating == 3 %}selected{% endif %}>3 - Średnio</option>
-                                    <option value="4" {% if user_review.rating == 4 %}selected{% endif %}>4 - Dobrze</option>
-                                    <option value="5" {% if user_review.rating == 5 %}selected{% endif %}>5 - Świetnie</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="comment" class="form-label">Komentarz:</label>
-                                <textarea name="comment" id="comment" class="form-control" rows="3" required>{{ user_review.comment }}</textarea>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Zaktualizuj opinię</button>
-                            <button type="button" class="btn btn-danger delete-review-btn" data-trainer-id="{{ profile_user.id }}">Usuń opinię</button>
-                        </form>
-                    </div>
-                {% else %}
-                    <div class="review-form mt-4">
-                        <h2 class="mb-3">Dodaj opinię</h2>
-                        <form method="post" action="/users/{{ profile_user.id }}/review">
-                            <div class="mb-3">
-                                <label for="rating" class="form-label">Ocena (1-5):</label>
-                                <select name="rating" id="rating" class="form-select" required>
-                                    <option value="1">1 - Bardzo słabo</option>
-                                    <option value="2">2 - Słabo</option>
-                                    <option value="3">3 - Średnio</option>
-                                    <option value="4">4 - Dobrze</option>
-                                    <option value="5">5 - Świetnie</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="comment" class="form-label">Komentarz:</label>
-                                <textarea name="comment" id="comment" class="form-control" rows="3" required></textarea>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Dodaj opinię</button>
-                        </form>
-                    </div>
-                {% endif %}
-            {% endif %}
-
-            <div class="reviews-section">
-                <h2 class="mb-4">Oceny</h2>
-                <table class="table table-striped table-bordered">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Imię</th>
-                            <th>Nazwisko</th>
-                            <th>Ocena</th>
-                            <th>Komentarz</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for review in reviews %}
-                        <tr>
-                            <td>{{ review.reviewer_name }}</td>
-                            <td>{{ review.reviewer_surname }}</td>
-                            <td>{{ review.rating }}</td>
-                            <td>{{ review.comment }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            <div class="mt-4 text-center">
-                <a href="/users" class="btn btn-secondary">Powrót do listy użytkowników</a>
-            </div>
-        </div>
-
-        <div class="footer text-center mt-4">© TrenujRazem</div>
+{% block content %}
+    <div class="bloczek d-flex flex-row align-items-center">
+        <img src="/static/prof.jpg" alt="" width="100px">
+        <h1 class="text-center mb-4">{{ profile_user.name }} {{ profile_user.surname }}</h1>
     </div>
 
+    <div class="card mb-4">
+        <div class="card-body">
+            <p><strong>Email:</strong> {{ profile_user.e_mail }}</p>
+        </div>
+    </div>
+
+    {% if logged_in and current_user.id != profile_user.id %}
+        {% if user_review %}
+            <div class="review-form mt-4">
+                <h2 class="mb-3">Edytuj swoją opinię</h2>
+                <form method="post" action="/users/{{ profile_user.id }}/review">
+                    <div class="mb-3">
+                        <label for="rating" class="form-label">Ocena (1-5):</label>
+                        <select name="rating" id="rating" class="form-select" required>
+                            {% for i in range(1, 6) %}
+                                <option value="{{ i }}" {% if user_review.rating == i %}selected{% endif %}>{{ i }} - {% if i == 1 %}Bardzo słabo{% elif i == 2 %}Słabo{% elif i == 3 %}Średnio{% elif i == 4 %}Dobrze{% elif i == 5 %}Świetnie{% endif %}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="comment" class="form-label">Komentarz:</label>
+                        <textarea name="comment" id="comment" class="form-control" rows="3" required>{{ user_review.comment }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Zaktualizuj opinię</button>
+                    <button type="button" class="btn btn-danger delete-review-btn" data-trainer-id="{{ profile_user.id }}">Usuń opinię</button>
+                </form>
+            </div>
+        {% else %}
+            <div class="review-form mt-4">
+                <h2 class="mb-3">Dodaj opinię</h2>
+                <form method="post" action="/users/{{ profile_user.id }}/review">
+                    <div class="mb-3">
+                        <label for="rating" class="form-label">Ocena (1-5):</label>
+                        <select name="rating" id="rating" class="form-select" required>
+                            {% for i in range(1, 6) %}
+                                <option value="{{ i }}">{{ i }} - {% if i == 1 %}Bardzo słabo{% elif i == 2 %}Słabo{% elif i == 3 %}Średnio{% elif i == 4 %}Dobrze{% elif i == 5 %}Świetnie{% endif %}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="comment" class="form-label">Komentarz:</label>
+                        <textarea name="comment" id="comment" class="form-control" rows="3" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Dodaj opinię</button>
+                </form>
+            </div>
+        {% endif %}
+    {% endif %}
+
+    <div class="reviews-section">
+        <h2 class="mb-4">Oceny</h2>
+        <table class="table table-striped table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Imię</th>
+                    <th>Nazwisko</th>
+                    <th>Ocena</th>
+                    <th>Komentarz</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for review in reviews %}
+                    <tr>
+                        <td>{{ review.reviewer_name }}</td>
+                        <td>{{ review.reviewer_surname }}</td>
+                        <td>{{ review.rating }}</td>
+                        <td>{{ review.comment }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="mt-4 text-center">
+        <a href="/users" class="btn btn-secondary">Powrót do listy użytkowników</a>
+    </div>
+{% endblock %}
+
+{% block scripts %}
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             document.querySelectorAll(".delete-review-btn").forEach(button => {
@@ -169,7 +117,4 @@
             });
         });
     </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+{% endblock %}

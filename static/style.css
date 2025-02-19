@@ -1,11 +1,9 @@
-/* Resetowanie domyślnych marginesów i paddingów */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-/* Tło strony i czcionki */
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f9;
@@ -15,14 +13,12 @@ body {
     flex-direction: column;
 }
 
-/* Kontener główny */
 .content {
     display: flex;
     flex-direction: column;
     height: 100%;
 }
 
-/* Banner */
 .banner {
     background-color: #333;
     color: white;
@@ -34,7 +30,6 @@ body {
     flex: 0 0 20%;
 }
 
-/* Menu nawigacyjne */
 nav {
     background-color: #2c3e50;
     text-align: center;
@@ -56,13 +51,17 @@ nav a:hover {
     background-color: #1abc9c;
 }
 
-/* Treść główna */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
 .main {
     background-color: white;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    flex: 1; /* Ta sekcja zajmie pozostałą przestrzeń */
+    flex: 1;
     margin: 20px 0;
 }
 
@@ -87,7 +86,6 @@ nav a:hover {
     background-color: #f4f4f4;
 }
 
-/* Stopka */
 .footer {
     background-color: #333;
     color: white;
@@ -98,7 +96,6 @@ nav a:hover {
     font-size: 0.9rem;
 }
 
-/* Responsywność */
 @media (max-width: 768px) {
     .banner {
         font-size: 2rem;

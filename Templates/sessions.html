@@ -1,103 +1,58 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }}</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
- 
-</head>
-<body>
-    <style>
-        body{
-            font-family: Arial, Helvetica, sans-serif;
-        }
-        .nav-link, .navbar-brand{
-            border-radius: 5px;
-        }
-    </style>
-    <div class="container">
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-            <div class="container-fluid">
-                <a class="navbar-brand" href="/">TrenujRazem</a>
-                <div class="collapse navbar-collapse">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/users">Trenerzy</a></li>
+{% extends "base.html" %}
 
-                        {% if user_role == 3 %}
-                        <li class="nav-item"><a class="nav-link" href="/create-session">Stwórz sesje</a></li>
+{% block title %}Lista Sesji{% endblock %}
 
-                        {% endif %}
-                    </ul>
-                </div>
-                <div style="float: right; color: white">
-                    {% if logged_in %}
-                        <span>{{ user.name }}</span>
-                        <a href="/my-sessions" class="btn btn-outline-light btn-sm">Moje sesje</a>
-                        <a href="/logout" class="btn btn-outline-light btn-sm">Wyloguj się</a>
-                    {% else %}
-                        <a href="/login" class="btn btn-outline-light btn-sm">Zaloguj się</a>
-                        <a href="/register" class="btn btn-outline-light btn-sm ms-2">Zarejestruj się</a>
-                    {% endif %}
-                </div>
+{% block content %}
+    <h1 class="text-center">Lista Sesji</h1>
+
+    <form method="get" action="/" class="mb-4">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <input type="text" name="search" class="form-control" placeholder="Szukaj po nazwie..." value="{{ search or '' }}">
             </div>
-        </nav>
-        <div class="main container mt-4">
-            <h1 class="text-center">Lista Sesji</h1>
-            <form method="get" action="/" class="mb-4">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <input 
-                            type="text" 
-                            name="search" 
-                            class="form-control" 
-                            placeholder="Szukaj po nazwie..." 
-                            value="{{ search or '' }}">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <select name="category" class="form-select">
-                            <option value="">Wszystkie kategorie</option>
-                            <option value="Fitness" {% if category == 'Fitness' %}selected{% endif %}>Fitness</option>
-                            <option value="Strength" {% if category == 'Strength' %}selected{% endif %}>Strength</option>
-                            <option value="Cardio" {% if category == 'Cardio' %}selected{% endif %}>Cardio</option>
-                            <option value="Pilates" {% if category == 'Pilates' %}selected{% endif %}>Pilates</option>
-                            <option value="Personalny" {% if category == 'Personalny' %}selected{% endif %}>Personalny</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2 mb-3">
-                        <button type="submit" class="btn btn-primary w-100">Szukaj</button>
-                    </div>
-                </div>
-            </form>
-            <div class="row row-cols-1 row-cols-md-3 g-4">
-                {% for session in sessions %}
-                <div class="col">
-                    <div class="card" style="width: 100%;">
-                        <img src="/static/{{ 'strength.png' if session.category == 'Strength' 
-                        else 'pilates.png' if session.category == 'Pilates' 
-                        else 'fitness.png' if session.category == 'Fitness' 
-                        else 'cardio.png' }}" class="card-img-top" alt="...">
-                        <div class="card-body">
-                            <h5 class="card-title">{{ session.title }}</h5>
-                            <p class="card-text">{{ session.category }}</p>
-                        </div>
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item">Data: {{ session.date }}</li>
-                            <li class="list-group-item">Lokalizacja: {{ session.location }}</li>
-                            <li class="list-group-item">Zajęte miejsca: {{ session.occupied_slots }} / {{ session.capacity }}</li>
-                        </ul>
-                        <div class="card-body">
-                            <a href="/sessions/{{ session.id }}" class="btn btn-primary">Szczegóły</a>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
+            <div class="col-md-4 mb-3">
+                <select name="category" class="form-select">
+                    <option value="">Wszystkie kategorie</option>
+                    <option value="Fitness" {% if category == 'Fitness' %}selected{% endif %}>Fitness</option>
+                    <option value="Strength" {% if category == 'Strength' %}selected{% endif %}>Strength</option>
+                    <option value="Cardio" {% if category == 'Cardio' %}selected{% endif %}>Cardio</option>
+                    <option value="Pilates" {% if category == 'Pilates' %}selected{% endif %}>Pilates</option>
+                    <option value="Personalny" {% if category == 'Personalny' %}selected{% endif %}>Personalny</option>
+                </select>
+            </div>
+            <div class="col-md-2 mb-3">
+                <button type="submit" class="btn btn-primary w-100">Szukaj</button>
             </div>
         </div>
-        <div class="footer text-center mt-4">© TrenujRazem</div>
+    </form>
+
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for session in sessions %}
+            <div class="col">
+                <div class="card" style="width: 100%;">  <img src="/static/{{ 'strength.png' if session.category == 'Strength' else 'pilates.png' if session.category == 'Pilates' else 'fitness.png' if session.category == 'Fitness' else 'cardio.png' }}" class="card-img-top" alt="{{ session.title }}">  <div class="card-body">
+                        <h5 class="card-title">{{ session.title }}</h5>
+                        <p class="card-text">{{ session.category }}</p>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">Data: {{ session.date }}</li>
+                        <li class="list-group-item">Lokalizacja: {{ session.location }}</li>
+                        <li class="list-group-item">Zajęte miejsca: {{ session.occupied_slots }} / {{ session.capacity }}</li>
+                    </ul>
+                    <div class="card-body">
+                        <a href="/sessions/{{ session.id }}" class="btn btn-primary">Szczegóły</a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
-</body>
-</html>
+
+    {% if not sessions %}
+        <p>Nie znaleziono sesji.</p>
+    {% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+    </script>
+{% endblock %}
