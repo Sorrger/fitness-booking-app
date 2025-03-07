@@ -28,4 +28,5 @@ Instrukcja uruchomienia lokalnego:
 Author:
 <ul>
   <li>-> Sorrger</li>
+  <li>-> Kamilliush</li>
 </ul>
